@@ -1,0 +1,73 @@
+name: Bug report
+description: Something in CopyStack doesn't work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Most problems come down to permissions, so please
+        fill in the checklist below before describing the bug.
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "e.g. 26.1 (Apple menu → About This Mac)"
+    validations:
+      required: true
+
+  - type: input
+    id: copystack-version
+    attributes:
+      label: CopyStack version
+      placeholder: "e.g. 0.1.0 (from the Releases page, or 'built from main at <commit>')"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install it?
+      options:
+        - Downloaded the zip from Releases
+        - Built it myself with Scripts/build-app.sh
+        - swift run
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: permissions
+    attributes:
+      label: Permissions checklist
+      description: Please confirm each one that applies (see the README for details).
+      options:
+        - label: CopyStack is listed and enabled under System Settings → Privacy & Security → Accessibility
+        - label: I chose "Always Allow" when macOS asked whether CopyStack may paste from another app (macOS 15.4+)
+        - label: I clicked "Open Anyway" after the first launch was blocked by Gatekeeper (downloaded builds only)
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+      placeholder: |
+        1. Recorded ⌃⌥E for the "Email" snippet
+        2. Pressed ⌃⌥E in TextEdit
+        3. Expected the email to appear; nothing was pasted
+    validations:
+      required: true
+
+  - type: input
+    id: target-app
+    attributes:
+      label: App you were pasting into
+      placeholder: "e.g. TextEdit, Slack, Safari"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: |
+        Run this in Terminal, reproduce the problem, then paste the output:
+        `log stream --predicate 'subsystem == "com.ozanalbayrak.CopyStack"' --style compact`
+      render: text
