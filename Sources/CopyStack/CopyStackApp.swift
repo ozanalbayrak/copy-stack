@@ -17,11 +17,15 @@ struct CopyStackApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = SnippetStore()
     let paster = Paster()
+    lazy var hotKeyManager = HotKeyManager(store: store) { [paster] snippet in
+        paster.paste(snippet.text)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Menu bar only: no Dock icon, no app switcher entry. Info.plist sets
         // LSUIElement for the bundle; this covers `swift run`.
         NSApp.setActivationPolicy(.accessory)
+        _ = hotKeyManager // register shortcuts at launch
         AccessibilityGate.requestIfNeeded()
     }
 }
