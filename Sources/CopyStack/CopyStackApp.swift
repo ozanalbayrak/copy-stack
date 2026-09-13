@@ -10,6 +10,10 @@ struct CopyStackApp: App {
         MenuBarExtra("CopyStack", systemImage: "doc.on.clipboard") {
             MenuBarView(store: appDelegate.store, paster: appDelegate.paster)
         }
+        Window("CopyStack Settings", id: "settings") {
+            SettingsView(store: appDelegate.store, hotKeyManager: appDelegate.hotKeyManager)
+        }
+        .defaultSize(width: 640, height: 440)
     }
 }
 

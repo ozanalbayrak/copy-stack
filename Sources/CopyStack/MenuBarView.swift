@@ -6,6 +6,7 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var store: SnippetStore
     let paster: Paster
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         if store.snippets.isEmpty {
@@ -18,6 +19,12 @@ struct MenuBarView: View {
             }
         }
         Divider()
+        Button("Settings…") {
+            openWindow(id: "settings")
+            // Accessory apps don't come forward on their own.
+            NSApp.activate()
+        }
+        .keyboardShortcut(",", modifiers: .command)
         Button("Quit CopyStack") {
             NSApp.terminate(nil)
         }
