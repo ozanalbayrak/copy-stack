@@ -24,7 +24,9 @@ final class KeyComboTests: XCTestCase {
 
     func testHasModifiers() {
         XCTAssertFalse(KeyCombo(keyCode: 14, modifiers: 0).hasModifiers)
-        XCTAssertTrue(KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.shift).hasModifiers)
+        XCTAssertFalse(KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.shift).hasModifiers)
+        XCTAssertTrue(KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.option).hasModifiers)
+        XCTAssertTrue(KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.shift | KeyCombo.Modifier.command).hasModifiers)
     }
 
     func testCodableRoundTrip() throws {

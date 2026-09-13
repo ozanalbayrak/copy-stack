@@ -46,8 +46,10 @@ public final class SnippetStore: ObservableObject {
     // MARK: Shortcut validation
 
     public enum ValidationError: Error, Equatable {
-        /// The combo has none of ⌃⌥⇧⌘; a bare key can't be a global hotkey.
+        /// The combo has none of ⌘⌃⌥; a bare or ⇧-only key can't be a global hotkey.
         case missingModifier
+        /// The combo is ⌘V, which CopyStack itself posts to paste.
+        case reserved
         /// Another snippet already uses this combo.
         case shortcutConflict(ownerName: String)
     }
@@ -60,6 +62,7 @@ public final class SnippetStore: ObservableObject {
     /// Throws if `combo` can't be assigned to the snippet with `snippetID`.
     public func validate(_ combo: KeyCombo, for snippetID: Snippet.ID) throws {
         guard combo.hasModifiers else { throw ValidationError.missingModifier }
+        if combo == KeyCombo.paste { throw ValidationError.reserved }
         if let owner = conflict(for: combo, excluding: snippetID) {
             throw ValidationError.shortcutConflict(ownerName: owner.name)
         }

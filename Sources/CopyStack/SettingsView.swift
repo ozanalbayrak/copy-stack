@@ -123,8 +123,12 @@ struct SnippetEditor: View {
                                 return true
                             } catch SnippetStore.ValidationError.shortcutConflict(let ownerName) {
                                 shortcutError = "Already used by “\(ownerName)”"
+                            } catch SnippetStore.ValidationError.reserved {
+                                shortcutError = "⌘V is reserved — CopyStack uses it to paste"
+                            } catch SnippetStore.ValidationError.missingModifier {
+                                shortcutError = "Add ⌘, ⌃ or ⌥ — ⇧ alone can't be a global shortcut"
                             } catch {
-                                shortcutError = "Add at least one modifier key (⌃ ⌥ ⇧ ⌘)"
+                                shortcutError = error.localizedDescription
                             }
                             return false
                         },

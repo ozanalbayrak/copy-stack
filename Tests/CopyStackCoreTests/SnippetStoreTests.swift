@@ -111,6 +111,29 @@ final class SnippetStoreTests: XCTestCase {
         }
     }
 
+    func testValidateRejectsShiftOnlyCombo() {
+        let store = SnippetStore(fileURL: fileURL)
+        let snippet = store.add()
+        XCTAssertThrowsError(try store.validate(KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.shift), for: snippet.id)) { error in
+            XCTAssertEqual(error as? SnippetStore.ValidationError, .missingModifier)
+        }
+    }
+
+    func testValidateRejectsCommandV() {
+        let store = SnippetStore(fileURL: fileURL)
+        let snippet = store.add()
+        XCTAssertThrowsError(try store.validate(KeyCombo(keyCode: 9, modifiers: KeyCombo.Modifier.command), for: snippet.id)) { error in
+            XCTAssertEqual(error as? SnippetStore.ValidationError, .reserved)
+        }
+    }
+
+    func testValidateAcceptsCommandShiftV() {
+        let store = SnippetStore(fileURL: fileURL)
+        let snippet = store.add()
+        let commandShiftV = KeyCombo(keyCode: 9, modifiers: KeyCombo.Modifier.command | KeyCombo.Modifier.shift)
+        XCTAssertNoThrow(try store.validate(commandShiftV, for: snippet.id))
+    }
+
     func testValidateRejectsComboOwnedByAnotherSnippet() {
         let (store, _) = makeStoreWithEmailBoundToCombo()
         let slack = store.add(name: "Slack")

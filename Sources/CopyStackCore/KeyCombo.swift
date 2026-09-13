@@ -17,13 +17,15 @@ public struct KeyCombo: Codable, Equatable, Hashable {
         public static let shift: UInt32 = 0x0200
         public static let option: UInt32 = 0x0800
         public static let control: UInt32 = 0x1000
-
-        static let all = command | shift | option | control
     }
 
-    /// True when at least one of ⌃⌥⇧⌘ is set.
+    /// ⌘V — CopyStack posts this itself to paste, so it can never be a snippet shortcut.
+    public static let paste = KeyCombo(keyCode: 9, modifiers: Modifier.command)
+
+    /// True when at least one of ⌘⌃⌥ is set. ⇧ alone is rejected: a ⇧-letter
+    /// hotkey would swallow every capital letter system-wide.
     public var hasModifiers: Bool {
-        modifiers & Modifier.all != 0
+        modifiers & (Modifier.command | Modifier.control | Modifier.option) != 0
     }
 
     /// Human-readable form in the standard macOS order, e.g. "⌃⌥⇧⌘E".
