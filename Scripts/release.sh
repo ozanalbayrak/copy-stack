@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds a distributable zip: build/CopyStack-<version>.zip
 #
-# Usage: Scripts/release.sh <version>      e.g. Scripts/release.sh 0.1.0
+# Usage: Scripts/release.sh <version>      e.g. Scripts/release.sh 0.2.0
 #
 # Honours the same CODESIGN_IDENTITY as build-app.sh. Prints the SHA-256 of
 # the zip so it can be pasted into release notes or a Homebrew cask.

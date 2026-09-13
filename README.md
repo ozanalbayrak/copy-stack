@@ -101,7 +101,9 @@ Its text moves out of `snippets.json` into your login Keychain (one item named
 **Reveal**. The first time after each update, macOS asks whether CopyStack may
 use the item — choose **Always Allow**. (Releases are ad-hoc signed, so macOS
 treats every update as a new app; a paid Developer ID would make this a
-one-time prompt.)
+one-time prompt.) The same prompt can appear when you edit a revealed secret,
+turn the toggle off, or delete a secret snippet — all of those touch the
+Keychain.
 
 Everything CopyStack pastes is marked as concealed and transient, so clipboard
 managers such as Maccy, Raycast and Paste don't record it.
@@ -109,6 +111,10 @@ managers such as Maccy, Raycast and Paste don't record it.
 To remove the secrets entirely, delete the "CopyStack secret snippets" item in
 Keychain Access; uninstalling (including `brew uninstall --zap`) leaves it in
 place.
+
+Files created by 0.1.x keep their old permissions until the first edit in
+0.2.0. Downgrading to 0.1.x is not supported: it drops the secret flag on the
+next save, leaving an empty normal snippet and an orphaned Keychain entry.
 
 ### Launch at login
 
