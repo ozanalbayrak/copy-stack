@@ -133,7 +133,7 @@ not interleave:
    `AccessibilityGate.requestIfNeeded()` and return. (Without permission
    `CGEvent.post` silently does nothing; the user must learn why.)
 2. Snapshot `NSPasteboard.general`: for every `NSPasteboardItem`, copy every
-   `type` and its `data`. Remember the pasteboard `changeCount`.
+   `type` and its `data`.
 3. `clearContents()` and `setString(text, forType: .string)`.
 4. Post ⌘V: `CGEvent(keyboardEventSource:virtualKey: 9, keyDown: true)` with
    `flags = .maskCommand`, then the matching key-up. Explicitly setting flags
