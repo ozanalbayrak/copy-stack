@@ -7,6 +7,10 @@ public final class SnippetStore: ObservableObject {
     @Published public private(set) var snippets: [Snippet]
     public let fileURL: URL
     private let secretStore: SecretStore
+    /// Ids whose Keychain entry could not be removed, e.g. because the user
+    /// denied the prompt while deleting the snippet. Dropped from the payload
+    /// on the next successful write.
+    private var pendingSecretRemovals: Set<UUID> = []
 
     private static let logger = Logger(subsystem: "com.ozanalbayrak.CopyStack", category: "SnippetStore")
 
@@ -83,7 +87,7 @@ public final class SnippetStore: ObservableObject {
         if snippets[index].isSecret {
             var secrets = try secretStore.read()
             secrets[id] = text
-            try secretStore.write(secrets)
+            try writeSecrets(secrets)
         } else {
             snippets[index].text = text
             save()
@@ -97,34 +101,50 @@ public final class SnippetStore: ObservableObject {
             throw SnippetError.unknownSnippet
         }
         guard snippets[index].isSecret != isSecret else { return }
+        var updated = snippets[index]
         if isSecret {
             // Secret store first: if it fails, nothing has changed.
             var secrets = try secretStore.read()
-            secrets[id] = snippets[index].text
-            try secretStore.write(secrets)
-            snippets[index].text = ""
-            snippets[index].isSecret = true
+            secrets[id] = updated.text
+            try writeSecrets(secrets)
+            updated.text = ""
+            updated.isSecret = true
+            snippets[index] = updated
             save()
         } else {
             let text = try secretStore.read()[id] ?? ""
             // JSON first: the text is safe before the secret entry goes away.
-            snippets[index].text = text
-            snippets[index].isSecret = false
+            updated.text = text
+            updated.isSecret = false
+            snippets[index] = updated
             save()
             removeSecret(for: id)
         }
     }
 
     /// Best-effort removal; the caller has already persisted the state that
-    /// matters, so a failure here is only logged.
+    /// matters, so a failure here is only logged. The id is remembered so the
+    /// next successful write drops the stale entry.
     private func removeSecret(for id: Snippet.ID) {
         do {
             var secrets = try secretStore.read()
             guard secrets.removeValue(forKey: id) != nil else { return }
-            try secretStore.write(secrets)
+            try writeSecrets(secrets)
         } catch {
+            pendingSecretRemovals.insert(id)
             Self.logger.error("Failed to remove secret for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Every write goes through here so entries that could not be removed
+    /// earlier are dropped as soon as the secret store accepts a write again.
+    private func writeSecrets(_ secrets: [UUID: String]) throws {
+        var secrets = secrets
+        for id in pendingSecretRemovals {
+            secrets.removeValue(forKey: id)
+        }
+        try secretStore.write(secrets)
+        pendingSecretRemovals.removeAll()
     }
 
     // MARK: Shortcut validation

@@ -172,6 +172,26 @@ final class SnippetStoreTests: XCTestCase {
         func write(_ secrets: [UUID: String]) throws { throw SecretStoreError.accessDenied }
     }
 
+    /// Wraps an `InMemorySecretStore`; rejects exactly one write when asked.
+    private final class FlakySecretStore: SecretStore {
+        let inner: InMemorySecretStore
+        var failNextWrite = false
+
+        init(inner: InMemorySecretStore) {
+            self.inner = inner
+        }
+
+        func read() throws -> [UUID: String] { try inner.read() }
+
+        func write(_ secrets: [UUID: String]) throws {
+            if failNextWrite {
+                failNextWrite = false
+                throw SecretStoreError.accessDenied
+            }
+            try inner.write(secrets)
+        }
+    }
+
     private func fileContents() throws -> String {
         try String(contentsOf: fileURL, encoding: .utf8)
     }
@@ -300,5 +320,22 @@ final class SnippetStoreTests: XCTestCase {
         XCTAssertEqual(store.snippets[0].text, "s3cret")
         XCTAssertFalse(store.snippets[0].isSecret)
         XCTAssertTrue(try fileContents().contains("s3cret"))
+    }
+
+    func testOrphanedSecretIsDroppedOnNextSuccessfulWrite() throws {
+        let flaky = FlakySecretStore(inner: secrets)
+        let store = SnippetStore(fileURL: fileURL, secretStore: flaky)
+        let first = store.add(name: "First", text: "one")
+        let second = store.add(name: "Second", text: "two")
+        try store.setSecret(true, for: first.id)
+        try store.setSecret(true, for: second.id)
+
+        flaky.failNextWrite = true
+        store.remove(id: first.id)
+        XCTAssertEqual(secrets.secrets[first.id], "one", "the denied removal leaves the entry behind")
+
+        try store.setText("changed", for: second.id)
+
+        XCTAssertEqual(secrets.secrets, [second.id: "changed"])
     }
 }
