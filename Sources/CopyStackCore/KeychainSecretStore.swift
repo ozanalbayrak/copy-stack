@@ -26,7 +26,13 @@ public final class KeychainSecretStore: SecretStore {
         switch status {
         case errSecSuccess:
             guard let data = result as? Data else { return [:] }
-            return try Self.decode(data)
+            do {
+                return try Self.decode(data)
+            } catch {
+                // A corrupt payload. Never fall back to [:], which would
+                // discard every secret on the next write.
+                throw SecretStoreError.failure(errSecDecode)
+            }
         case errSecItemNotFound:
             return [:]
         default:
@@ -54,6 +60,9 @@ public final class KeychainSecretStore: SecretStore {
         guard status == errSecSuccess else { throw Self.error(for: status) }
     }
 
+    // No kSecUseDataProtectionKeychain: the legacy login keychain is what
+    // gives per-signature "Always Allow" access lists, which the
+    // one-prompt-per-update model relies on.
     private var baseQuery: [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
