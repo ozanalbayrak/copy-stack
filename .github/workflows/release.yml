@@ -10,6 +10,8 @@ permissions:
 jobs:
   release:
     runs-on: macos-latest
+    env:
+      TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
 
@@ -26,6 +28,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/CopyStack-*.zip \
-            --title "CopyStack $GITHUB_REF_NAME" \
+          version="${GITHUB_REF_NAME#v}"
+          sha=$(shasum -a 256 "build/CopyStack-$version.zip" | cut -d' ' -f1)
+          printf 'SHA-256: `%s`\n' "$sha" > release-notes.md
+          gh release create "$GITHUB_REF_NAME" "build/CopyStack-$version.zip" \
+            --title "CopyStack $version" \
+            --notes-file release-notes.md \
             --generate-notes
+
+      # Needs a fine-grained PAT with Contents: read/write on ozanalbayrak/homebrew-tap.
+      # Skipped when the secret is absent.
+      - name: Bump Homebrew cask
+        if: env.TAP_GITHUB_TOKEN != ''
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sha=$(shasum -a 256 "build/CopyStack-$version.zip" | cut -d' ' -f1)
+          git clone --depth 1 "https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/ozanalbayrak/homebrew-tap.git" tap
+          cd tap
+          sed -i '' -E "s/^  version \".*\"$/  version \"$version\"/; s/^  sha256 \".*\"$/  sha256 \"$sha\"/" Casks/copystack.rb
+          git diff --quiet && { echo "cask already at $version"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "copystack $version"
+          git push

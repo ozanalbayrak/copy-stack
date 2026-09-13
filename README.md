@@ -5,7 +5,18 @@ address, Slack slash commands, a meeting link. Each snippet gets its own
 global keyboard shortcut; press it and the text is pasted into whatever app
 is focused. Your real clipboard is left exactly as it was.
 
-## Download
+## Install
+
+### Homebrew
+
+```bash
+brew install --cask ozanalbayrak/tap/copystack
+```
+
+The cask clears the quarantine flag for you, so the Gatekeeper step below is
+not needed. Apple silicon only for now.
+
+### Manual download
 
 Grab the latest `CopyStack-<version>.zip` from the
 [Releases page](https://github.com/ozanalbayrak/copy-stack/releases), unzip
@@ -115,6 +126,13 @@ git push origin v0.2.0
 ```
 
 `Scripts/release.sh 0.2.0` produces the same zip locally.
+
+If the repository has a `TAP_GITHUB_TOKEN` secret (a fine-grained personal
+access token with *Contents: read and write* on
+[`ozanalbayrak/homebrew-tap`](https://github.com/ozanalbayrak/homebrew-tap)),
+the workflow also bumps the Homebrew cask to the new version. Without it, edit
+`Casks/copystack.rb` in the tap by hand (version + SHA-256 printed in the
+release notes).
 
 ## Roadmap
 
