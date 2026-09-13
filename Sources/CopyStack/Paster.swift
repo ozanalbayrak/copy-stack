@@ -18,6 +18,12 @@ final class Paster {
     private static let logger = Logger(subsystem: "com.ozanalbayrak.CopyStack", category: "Paster")
     private static let vKeyCode: CGKeyCode = 9 // kVK_ANSI_V
 
+    /// Markers from nspasteboard.org. Clipboard managers (Maccy, Raycast,
+    /// Paste, …) skip items that carry them, so a secret never lands in
+    /// someone's clipboard history. Everything CopyStack writes is transient.
+    private static let concealedType = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
+    private static let transientType = NSPasteboard.PasteboardType("org.nspasteboard.TransientType")
+
     init(pasteboard: NSPasteboard = .general, restoreDelay: TimeInterval = 0.15) {
         self.pasteboard = pasteboard
         self.restoreDelay = restoreDelay
@@ -59,6 +65,8 @@ final class Paster {
         }
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+        pasteboard.setData(Data(), forType: Self.concealedType)
+        pasteboard.setData(Data(), forType: Self.transientType)
         postCommandV()
 
         // Give the target app time to read the pasteboard before restoring.

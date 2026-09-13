@@ -5,7 +5,7 @@ import SwiftUI
 /// Content of the menu bar dropdown.
 struct MenuBarView: View {
     @ObservedObject var store: SnippetStore
-    let paster: Paster
+    let paste: (Snippet) -> Void
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -14,7 +14,7 @@ struct MenuBarView: View {
         } else {
             ForEach(store.snippets) { snippet in
                 Button(Self.title(for: snippet)) {
-                    paster.paste(snippet.text)
+                    paste(snippet)
                 }
             }
         }
