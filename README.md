@@ -93,6 +93,29 @@ paste instead of risking your clipboard.
 4. Focus any app and press the shortcut. Clicking a snippet in the menu
    pastes it too.
 
+### Secret snippets
+
+Turn on **Store in Keychain** for a snippet that holds a token or a password.
+Its text moves out of `snippets.json` into your login Keychain (one item named
+"CopyStack secret snippets") and is only read when you paste it or click
+**Reveal**. The first time after each update, macOS asks whether CopyStack may
+use the item — choose **Always Allow**. (Releases are ad-hoc signed, so macOS
+treats every update as a new app; a paid Developer ID would make this a
+one-time prompt.)
+
+Everything CopyStack pastes is marked as concealed and transient, so clipboard
+managers such as Maccy, Raycast and Paste don't record it.
+
+To remove the secrets entirely, delete the "CopyStack secret snippets" item in
+Keychain Access; uninstalling (including `brew uninstall --zap`) leaves it in
+place.
+
+### Launch at login
+
+Settings → **Launch at login**. This registers the installed `CopyStack.app`
+with macOS (System Settings → General → Login Items); it does not work for
+builds run from the repository.
+
 Snippets are stored in
 `~/Library/Application Support/CopyStack/snippets.json`.
 
@@ -101,6 +124,13 @@ Snippets are stored in
 ```bash
 swift test    # unit tests for the Core module
 swift build   # compile everything
+```
+
+`swift test` never touches your Keychain. To run the one Keychain integration
+test against the login Keychain (it creates and deletes a throwaway item):
+
+```bash
+COPYSTACK_KEYCHAIN_TESTS=1 swift test --filter KeychainSecretStoreTests
 ```
 
 The `CopyStackCore` library (models, JSON store, validation) is covered by
@@ -115,6 +145,17 @@ the shortcut recorder — are verified by hand:
 5. Try to record ⌃⌥E on a second snippet → rejected, naming the owner.
 6. Clear the shortcut → the menu row loses its label and the hotkey no
    longer fires.
+7. Turn on **Store in Keychain** for a snippet → `snippets.json` shows
+   `"text" : ""` for it and Keychain Access shows "CopyStack secret snippets".
+   Quit, relaunch, press its shortcut → one Keychain prompt, then the text
+   pastes.
+8. With Maccy or Raycast clipboard history running, paste any snippet → it
+   does not show up in the history.
+9. Turn **Store in Keychain** off → the text is back in `snippets.json`.
+10. `ls -l ~/Library/Application\ Support/CopyStack/snippets.json` shows
+    `-rw-------`.
+11. Toggle **Launch at login** → CopyStack appears under System Settings →
+    General → Login Items; log out and in → it is running.
 
 ## Releasing
 
@@ -137,7 +178,6 @@ release notes).
 ## Roadmap
 
 - Picker popup: one hotkey opens a searchable list of all snippets.
-- Launch at login.
 
 ## License
 
