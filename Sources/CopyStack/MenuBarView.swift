@@ -6,7 +6,7 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var store: SnippetStore
     let paster: Paster
-    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         if store.snippets.isEmpty {
@@ -20,7 +20,7 @@ struct MenuBarView: View {
         }
         Divider()
         Button("Settings…") {
-            openWindow(id: "settings")
+            openSettings()
             // Accessory apps don't come forward on their own.
             NSApp.activate()
         }

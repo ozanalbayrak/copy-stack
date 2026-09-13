@@ -10,10 +10,11 @@ struct CopyStackApp: App {
         MenuBarExtra("CopyStack", systemImage: "doc.on.clipboard") {
             MenuBarView(store: appDelegate.store, paster: appDelegate.paster)
         }
-        Window("CopyStack Settings", id: "settings") {
+        // A `Settings` scene is never auto-presented; a lone `Window` scene
+        // would open itself at launch (and be restored on relaunch).
+        Settings {
             SettingsView(store: appDelegate.store, hotKeyManager: appDelegate.hotKeyManager)
         }
-        .defaultSize(width: 640, height: 440)
     }
 }
 
