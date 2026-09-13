@@ -43,6 +43,28 @@ public final class SnippetStore: ObservableObject {
         save()
     }
 
+    // MARK: Shortcut validation
+
+    public enum ValidationError: Error, Equatable {
+        /// The combo has none of ⌃⌥⇧⌘; a bare key can't be a global hotkey.
+        case missingModifier
+        /// Another snippet already uses this combo.
+        case shortcutConflict(ownerName: String)
+    }
+
+    /// The snippet that already owns `combo`, ignoring the snippet with id `excluding`.
+    public func conflict(for combo: KeyCombo, excluding id: Snippet.ID? = nil) -> Snippet? {
+        snippets.first { $0.id != id && $0.shortcut == combo }
+    }
+
+    /// Throws if `combo` can't be assigned to the snippet with `snippetID`.
+    public func validate(_ combo: KeyCombo, for snippetID: Snippet.ID) throws {
+        guard combo.hasModifiers else { throw ValidationError.missingModifier }
+        if let owner = conflict(for: combo, excluding: snippetID) {
+            throw ValidationError.shortcutConflict(ownerName: owner.name)
+        }
+    }
+
     // MARK: Persistence
 
     private func save() {

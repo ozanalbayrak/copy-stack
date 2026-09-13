@@ -73,4 +73,60 @@ final class SnippetStoreTests: XCTestCase {
         XCTAssertTrue(contents.contains("\n"), "expected multi-line output, got: \(contents)")
         XCTAssertTrue(contents.contains("\"Email\""))
     }
+
+    // MARK: Shortcut validation
+
+    private let combo = KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.control | KeyCombo.Modifier.option)
+
+    private func makeStoreWithEmailBoundToCombo() -> (SnippetStore, Snippet) {
+        let store = SnippetStore(fileURL: fileURL)
+        var email = store.add(name: "Email")
+        email.shortcut = combo
+        store.update(email)
+        return (store, email)
+    }
+
+    func testConflictFindsSnippetOwningCombo() {
+        let (store, email) = makeStoreWithEmailBoundToCombo()
+        let slack = store.add(name: "Slack")
+        XCTAssertEqual(store.conflict(for: combo, excluding: slack.id)?.id, email.id)
+    }
+
+    func testConflictIgnoresExcludedSnippet() {
+        let (store, email) = makeStoreWithEmailBoundToCombo()
+        XCTAssertNil(store.conflict(for: combo, excluding: email.id))
+    }
+
+    func testConflictIsNilWhenComboIsUnused() {
+        let (store, _) = makeStoreWithEmailBoundToCombo()
+        let other = KeyCombo(keyCode: 1, modifiers: KeyCombo.Modifier.command)
+        XCTAssertNil(store.conflict(for: other))
+    }
+
+    func testValidateRejectsComboWithoutModifiers() {
+        let store = SnippetStore(fileURL: fileURL)
+        let snippet = store.add()
+        XCTAssertThrowsError(try store.validate(KeyCombo(keyCode: 14, modifiers: 0), for: snippet.id)) { error in
+            XCTAssertEqual(error as? SnippetStore.ValidationError, .missingModifier)
+        }
+    }
+
+    func testValidateRejectsComboOwnedByAnotherSnippet() {
+        let (store, _) = makeStoreWithEmailBoundToCombo()
+        let slack = store.add(name: "Slack")
+        XCTAssertThrowsError(try store.validate(combo, for: slack.id)) { error in
+            XCTAssertEqual(error as? SnippetStore.ValidationError, .shortcutConflict(ownerName: "Email"))
+        }
+    }
+
+    func testValidateAcceptsComboOwnedByTheSameSnippet() {
+        let (store, email) = makeStoreWithEmailBoundToCombo()
+        XCTAssertNoThrow(try store.validate(combo, for: email.id))
+    }
+
+    func testValidateAcceptsUnusedComboWithModifier() {
+        let store = SnippetStore(fileURL: fileURL)
+        let snippet = store.add()
+        XCTAssertNoThrow(try store.validate(KeyCombo(keyCode: 1, modifiers: KeyCombo.Modifier.command), for: snippet.id))
+    }
 }
