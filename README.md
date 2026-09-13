@@ -44,12 +44,22 @@ A free "Apple Development" certificate is enough: open Xcode → Settings →
 Accounts, add your Apple ID, and click *Manage Certificates → +*. List your
 identities with `security find-identity -v -p codesigning`.
 
+## Pasteboard privacy (macOS 15.4 and later)
+
+To restore your clipboard after a paste, CopyStack has to read it first. On
+macOS 15.4 and later the system may ask "CopyStack would like to paste from
+<app>" the first time this happens — choose **Always Allow**. You can change
+that choice later under **System Settings → Privacy & Security** (the
+*Pasteboard* section on macOS 26). If access is denied, CopyStack skips the
+paste instead of risking your clipboard.
+
 ## Usage
 
 1. Click the clipboard icon in the menu bar → **Settings…**
 2. Press **+** to add a snippet, give it a name and text.
 3. Click the **Shortcut** field and press a key combination (at least one of
-   ⌃ ⌥ ⇧ ⌘ plus a key). Shortcuts must be unique across snippets.
+   ⌘ ⌃ ⌥ plus a key — ⇧ on its own isn't enough, and ⌘V is reserved).
+   Shortcuts must be unique across snippets.
 4. Focus any app and press the shortcut. Clicking a snippet in the menu
    pastes it too.
 

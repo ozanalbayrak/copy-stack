@@ -96,7 +96,10 @@ and common keys; unknown codes fall back to `Key<code>`.
 
 Validation rules enforced by `SnippetStore`:
 
-- A `KeyCombo` must include at least one modifier.
+- A `KeyCombo` must include at least one of ⌘⌃⌥. ⇧ alone is not enough: a
+  ⇧-letter hotkey would swallow every capital letter system-wide.
+- ⌘V is reserved (`KeyCombo.paste`): CopyStack posts it itself to paste, so a
+  snippet bound to it would trigger itself.
 - No two snippets may share the same `KeyCombo`. `store.conflict(for:excluding:)`
   returns the snippet that already owns a combo, if any.
 
@@ -133,15 +136,17 @@ not interleave:
    `AccessibilityGate.requestIfNeeded()` and return. (Without permission
    `CGEvent.post` silently does nothing; the user must learn why.)
 2. Snapshot `NSPasteboard.general`: for every `NSPasteboardItem`, copy every
-   `type` and its `data`.
+   `type` and its `data`, preserving each item's type order. If the read is
+   denied (macOS 15.4+ pasteboard privacy) or returns nothing although the
+   pasteboard has types, stop here and leave the clipboard untouched.
 3. `clearContents()` and `setString(text, forType: .string)`.
 4. Post ⌘V: `CGEvent(keyboardEventSource:virtualKey: 9, keyDown: true)` with
    `flags = .maskCommand`, then the matching key-up. Explicitly setting flags
    means modifiers the user is still physically holding (⌃⌥ from the hotkey)
    are ignored.
 5. After ~150 ms (`DispatchQueue.main.asyncAfter`), restore the snapshot: clear,
-   then write each item back with all its types. If the snapshot was empty,
-   leave the pasteboard empty.
+   then write each item back with all its types in the original order. If the
+   snapshot was empty, leave the pasteboard empty.
 6. Release the queue so the next paste can run.
 
 ### AccessibilityGate
@@ -167,13 +172,14 @@ Quit CopyStack           ⌘Q
 
 Clicking a snippet runs the same `Paster` flow. With no snippets a disabled
 "No snippets yet" row is shown. `Settings…` opens the settings window via
-`openWindow`. The app runs as an accessory (`LSUIElement = true` in Info.plist,
+`openSettings`. The app runs as an accessory (`LSUIElement = true` in Info.plist,
 plus `NSApp.setActivationPolicy(.accessory)` in code so `swift run` behaves the
 same).
 
 ### Settings window (`SettingsView`)
 
-A `Window` scene, roughly 600×400.
+A `Settings` scene (never auto-presented at launch), opened via `openSettings`,
+roughly 600×400.
 
 - Top: a yellow banner when Accessibility is not granted, with an
   "Open System Settings" button. Refreshed when the window becomes key.
@@ -208,6 +214,7 @@ A `Window` scene, roughly 600×400.
 | Snippets file corrupt | Log to `os.Logger`, start with empty list, overwrite on next save. |
 | Cannot write snippets file | Log; keep in-memory state; retry on next change. |
 | `RegisterEventHotKey` fails (e.g. combo taken by another app) | Log with the combo; snippet stays in list without a working hotkey. |
+| Pasteboard read denied (macOS 15.4+ pasteboard privacy) | No paste; log; clipboard untouched. |
 | Pasteboard restore fails for a type | Skip that type, restore the rest. |
 
 ## Testing
@@ -219,8 +226,8 @@ Unit tests in `Tests/CopyStackCoreTests` (XCTest):
   unknown key code fallback.
 - `SnippetStore`: add/remove/update persist to a temp directory and reload;
   missing file → empty; corrupt file → empty; `conflict(for:excluding:)` finds
-  another snippet's combo and ignores the excluded id; combo with no modifiers
-  is rejected.
+  another snippet's combo and ignores the excluded id; combos with no
+  modifiers or ⇧ only are rejected; ⌘V is rejected as reserved.
 
 `HotKeyManager`, `Paster`, and the recorder depend on live system APIs and are
 verified manually. The README carries the checklist:
