@@ -22,5 +22,7 @@
     <string>14.0</string>
     <key>LSUIElement</key>
     <true/>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026 Ozan Albayrak. MIT License.</string>
 </dict>
 </plist>

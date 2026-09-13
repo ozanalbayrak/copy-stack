@@ -90,3 +90,7 @@ the shortcut recorder — are verified by hand:
 
 - Picker popup: one hotkey opens a searchable list of all snippets.
 - Launch at login.
+
+## License
+
+[MIT](LICENSE)
