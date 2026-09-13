@@ -140,6 +140,8 @@ struct SnippetEditor: View {
     @State private var secretError: String?
     /// Secret text while revealed; `nil` means masked.
     @State private var revealedText: String?
+    /// Debounced write of the revealed text; see `scheduleCommit`.
+    @State private var pendingCommit: Task<Void, Never>?
 
     init(snippet: Binding<Snippet>, store: SnippetStore, hotKeyManager: HotKeyManager) {
         _snippet = snippet
@@ -197,6 +199,7 @@ struct SnippetEditor: View {
                             // Also fires when a failed attempt reverts the
                             // toggle; the guard makes that a no-op.
                             guard newValue != snippet.isSecret else { return }
+                            flushPendingCommit()
                             do {
                                 try store.setSecret(newValue, for: snippet.id)
                                 secretError = nil
@@ -225,6 +228,7 @@ struct SnippetEditor: View {
             }
         }
         .padding()
+        .onDisappear { flushPendingCommit() }
     }
 
     @ViewBuilder
@@ -235,17 +239,15 @@ struct SnippetEditor: View {
                     get: { revealedText },
                     set: { newValue in
                         self.revealedText = newValue
-                        do {
-                            try store.setText(newValue, for: snippet.id)
-                            secretError = nil
-                        } catch {
-                            secretError = Self.message(for: error)
-                        }
+                        scheduleCommit(newValue)
                     }))
                     .font(.system(.body, design: .monospaced))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .border(Color(nsColor: .separatorColor))
                 Button("Hide") {
+                    // Clear a stale caption first so a failed flush stays visible.
+                    secretError = nil
+                    flushPendingCommit()
                     self.revealedText = nil
                 }
             }
@@ -267,6 +269,37 @@ struct SnippetEditor: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .border(Color(nsColor: .separatorColor))
+        }
+    }
+
+    /// Commits ~300 ms after the last keystroke so a revealed edit costs one
+    /// Keychain round-trip per pause, not one per character.
+    private func scheduleCommit(_ text: String) {
+        pendingCommit?.cancel()
+        pendingCommit = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            commit(text)
+        }
+    }
+
+    /// Writes any not-yet-committed edit immediately.
+    private func flushPendingCommit() {
+        guard pendingCommit != nil else { return }
+        pendingCommit?.cancel()
+        pendingCommit = nil
+        if let revealedText {
+            commit(revealedText)
+        }
+    }
+
+    private func commit(_ text: String) {
+        pendingCommit = nil
+        do {
+            try store.setText(text, for: snippet.id)
+            secretError = nil
+        } catch {
+            secretError = Self.message(for: error)
         }
     }
 
