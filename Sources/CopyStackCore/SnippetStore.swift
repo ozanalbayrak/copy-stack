@@ -87,6 +87,8 @@ public final class SnippetStore: ObservableObject {
         if snippets[index].isSecret {
             var secrets = try secretStore.read()
             secrets[id] = text
+            // An id being written is live again; it must not be stripped.
+            pendingSecretRemovals.remove(id)
             try writeSecrets(secrets)
         } else {
             snippets[index].text = text
@@ -106,6 +108,9 @@ public final class SnippetStore: ObservableObject {
             // Secret store first: if it fails, nothing has changed.
             var secrets = try secretStore.read()
             secrets[id] = updated.text
+            // A removal that failed earlier (toggle off, then on again) must
+            // not strip the id that is being written now.
+            pendingSecretRemovals.remove(id)
             try writeSecrets(secrets)
             updated.text = ""
             updated.isSecret = true

@@ -354,6 +354,22 @@ final class SnippetStoreTests: XCTestCase {
         XCTAssertEqual(secrets.secrets, [second.id: "changed"])
     }
 
+    func testReenablingSecretAfterFailedRemovalKeepsTheText() throws {
+        let flaky = FlakySecretStore(inner: secrets)
+        let store = SnippetStore(fileURL: fileURL, secretStore: flaky)
+        let token = store.add(name: "Token", text: "s3cret")
+        try store.setSecret(true, for: token.id)
+
+        flaky.failNextWrite = true
+        try store.setSecret(false, for: token.id)   // removal write fails; the id is now pending
+        XCTAssertEqual(store.snippets[0].text, "s3cret")
+
+        try store.setSecret(true, for: token.id)    // must not strip the live id
+
+        XCTAssertEqual(try store.text(for: token.id), "s3cret")
+        XCTAssertEqual(try flaky.read(), [token.id: "s3cret"])
+    }
+
     func testSetSecretFalseLeavesEverythingUnchangedWhenReadFails() throws {
         let working = makeStore()
         let token = working.add(name: "Token", text: "s3cret")
