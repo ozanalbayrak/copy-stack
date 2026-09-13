@@ -7,7 +7,8 @@ import os
 /// Requests are queued so back-to-back triggers don't interleave their
 /// snapshot/restore steps. Main thread only.
 final class Paster {
-    private typealias ItemSnapshot = [NSPasteboard.PasteboardType: Data]
+    /// One pasteboard item's representations, in the order the item listed them.
+    private typealias ItemSnapshot = [(type: NSPasteboard.PasteboardType, data: Data)]
 
     private let pasteboard: NSPasteboard
     private let restoreDelay: TimeInterval
@@ -39,7 +40,23 @@ final class Paster {
         isPasting = true
         let text = queue.removeFirst()
 
+        // Pasteboard privacy (macOS 15.4+): reading the pasteboard may prompt
+        // the user or be denied outright. A denied read yields no data, so
+        // clearing in that state would lose the user's clipboard for good.
+        // Skip the paste rather than risk it.
+        if #available(macOS 15.4, *), pasteboard.accessBehavior == .alwaysDeny {
+            Self.logger.error("Pasteboard access is denied; skipping paste to protect the clipboard")
+            abortPending()
+            return
+        }
         let snapshot = snapshotPasteboard()
+        if snapshot.isEmpty, !(pasteboard.types ?? []).isEmpty {
+            // Content exists but none of it could be read: the read was
+            // denied (or failed). A genuinely empty pasteboard has no types.
+            Self.logger.error("Pasteboard has content that could not be read; skipping paste to protect the clipboard")
+            abortPending()
+            return
+        }
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
         postCommandV()
@@ -53,26 +70,34 @@ final class Paster {
         }
     }
 
+    /// Drops every queued request without touching the pasteboard.
+    private func abortPending() {
+        queue.removeAll()
+        isPasting = false
+    }
+
     // MARK: Pasteboard snapshot
 
     private func snapshotPasteboard() -> [ItemSnapshot] {
         (pasteboard.pasteboardItems ?? []).compactMap { item in
-            var data: ItemSnapshot = [:]
+            var representations: ItemSnapshot = []
             for type in item.types {
                 if let bytes = item.data(forType: type) {
-                    data[type] = bytes
+                    representations.append((type, bytes))
                 }
             }
-            return data.isEmpty ? nil : data
+            return representations.isEmpty ? nil : representations
         }
     }
 
     private func restore(_ snapshot: [ItemSnapshot]) {
         pasteboard.clearContents()
         guard !snapshot.isEmpty else { return }
-        let items = snapshot.map { data -> NSPasteboardItem in
+        let items = snapshot.map { representations -> NSPasteboardItem in
             let item = NSPasteboardItem()
-            for (type, bytes) in data {
+            // Same order as the original item: readers that take the first
+            // type they understand must see the same representation.
+            for (type, bytes) in representations {
                 if !item.setData(bytes, forType: type) {
                     Self.logger.error("Failed to restore pasteboard type \(type.rawValue, privacy: .public)")
                 }
