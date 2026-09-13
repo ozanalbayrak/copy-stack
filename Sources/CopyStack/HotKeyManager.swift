@@ -1,4 +1,3 @@
-import AppKit
 import Carbon
 import Combine
 import CopyStackCore
@@ -41,7 +40,10 @@ final class HotKeyManager {
         // @Published emits the current value on subscription, so this also
         // performs the initial registration.
         cancellable = store.$snippets.sink { [weak self] snippets in
-            self?.register(snippets)
+            // While disabled (recording), stay unregistered; `isEnabled`'s
+            // didSet re-registers from `store.snippets` on re-enable.
+            guard let self, self.isEnabled else { return }
+            self.register(snippets)
         }
     }
 
@@ -101,7 +103,7 @@ final class HotKeyManager {
             if status == noErr, let ref {
                 registrations[id] = (ref, snippet.id)
             } else {
-                // Typically the combo is already taken by another app.
+                // Usually eventHotKeyExistsErr: the combo is already registered by this process, or the system reserves it.
                 Self.logger.error("RegisterEventHotKey failed for \(combo.displayString, privacy: .public): \(status)")
             }
         }
