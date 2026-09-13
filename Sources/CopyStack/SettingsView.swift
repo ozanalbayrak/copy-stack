@@ -100,7 +100,20 @@ struct SnippetEditor: View {
     @Binding var snippet: Snippet
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
+
     @State private var shortcutError: String?
+    /// Local copy of the toggle so a failed `setSecret` can revert it.
+    @State private var isSecret: Bool
+    @State private var secretError: String?
+    /// Secret text while revealed; `nil` means masked.
+    @State private var revealedText: String?
+
+    init(snippet: Binding<Snippet>, store: SnippetStore, hotKeyManager: HotKeyManager) {
+        _snippet = snippet
+        _store = ObservedObject(wrappedValue: store)
+        self.hotKeyManager = hotKeyManager
+        _isSecret = State(initialValue: snippet.wrappedValue.isSecret)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -144,13 +157,94 @@ struct SnippetEditor: View {
                     }
                 }
             }
+            LabeledContent("Storage") {
+                VStack(alignment: .leading, spacing: 4) {
+                    Toggle("Store in Keychain", isOn: $isSecret)
+                        .onChange(of: isSecret) { _, newValue in
+                            // Also fires when a failed attempt reverts the
+                            // toggle; the guard makes that a no-op.
+                            guard newValue != snippet.isSecret else { return }
+                            do {
+                                try store.setSecret(newValue, for: snippet.id)
+                                secretError = nil
+                                revealedText = nil
+                            } catch {
+                                isSecret = snippet.isSecret
+                                secretError = Self.message(for: error)
+                            }
+                        }
+                    if let secretError {
+                        Text(secretError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
             Text("Text")
                 .font(.headline)
-            TextEditor(text: $snippet.text)
-                .font(.system(.body, design: .monospaced))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .border(Color(nsColor: .separatorColor))
+            if snippet.isSecret {
+                secretTextArea
+            } else {
+                TextEditor(text: $snippet.text)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .border(Color(nsColor: .separatorColor))
+            }
         }
         .padding()
+    }
+
+    @ViewBuilder
+    private var secretTextArea: some View {
+        if let revealedText {
+            VStack(alignment: .leading, spacing: 6) {
+                TextEditor(text: Binding(
+                    get: { revealedText },
+                    set: { newValue in
+                        self.revealedText = newValue
+                        do {
+                            try store.setText(newValue, for: snippet.id)
+                            secretError = nil
+                        } catch {
+                            secretError = Self.message(for: error)
+                        }
+                    }))
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .border(Color(nsColor: .separatorColor))
+                Button("Hide") {
+                    self.revealedText = nil
+                }
+            }
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "lock.fill")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                Text("Hidden — stored in Keychain")
+                    .foregroundStyle(.secondary)
+                Button("Reveal") {
+                    do {
+                        revealedText = try store.text(for: snippet.id)
+                        secretError = nil
+                    } catch {
+                        secretError = Self.message(for: error)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .border(Color(nsColor: .separatorColor))
+        }
+    }
+
+    private static func message(for error: Error) -> String {
+        switch error {
+        case SecretStoreError.accessDenied:
+            return "Keychain access was denied"
+        case SecretStoreError.failure(let status):
+            return "Keychain error \(status)"
+        default:
+            return error.localizedDescription
+        }
     }
 }
