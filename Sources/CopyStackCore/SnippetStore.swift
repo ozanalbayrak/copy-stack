@@ -164,6 +164,13 @@ public final class SnippetStore: ObservableObject {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             Self.logger.error("Failed to save snippets: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        // The file lists snippet names and shortcuts; keep it to the owner.
+        do {
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
+        } catch {
+            Self.logger.error("Failed to set permissions on snippets file: \(error.localizedDescription, privacy: .public)")
         }
     }
 

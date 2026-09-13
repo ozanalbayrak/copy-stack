@@ -80,6 +80,12 @@ final class SnippetStoreTests: XCTestCase {
         XCTAssertTrue(contents.contains("\"Email\""))
     }
 
+    func testSavedFileIsOwnerReadWriteOnly() throws {
+        makeStore().add(name: "Email")
+        let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+        XCTAssertEqual(attributes[.posixPermissions] as? Int, 0o600)
+    }
+
     // MARK: Shortcut validation
 
     private let combo = KeyCombo(keyCode: 14, modifiers: KeyCombo.Modifier.control | KeyCombo.Modifier.option)
