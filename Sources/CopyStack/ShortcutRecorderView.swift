@@ -33,6 +33,10 @@ struct ShortcutRecorderView: NSViewRepresentable {
         control.onRecord = onRecord
         control.onClear = onClear
     }
+
+    static func dismantleNSView(_ control: RecorderControl, coordinator: ()) {
+        control.cancelRecording()
+    }
 }
 
 final class RecorderControl: NSView {
@@ -53,6 +57,7 @@ final class RecorderControl: NSView {
 
     private let label = NSTextField(labelWithString: "")
     private let clearButton: NSButton
+    private var resignKeyObserver: NSObjectProtocol?
 
     private static let escapeKeyCode: UInt16 = 53 // kVK_Escape
 
@@ -89,6 +94,12 @@ final class RecorderControl: NSView {
         fatalError("init(coder:) is not supported")
     }
 
+    deinit {
+        if let resignKeyObserver {
+            NotificationCenter.default.removeObserver(resignKeyObserver)
+        }
+    }
+
     override var intrinsicContentSize: NSSize {
         NSSize(width: 180, height: 24)
     }
@@ -105,6 +116,38 @@ final class RecorderControl: NSView {
     override func resignFirstResponder() -> Bool {
         isRecording = false
         return super.resignFirstResponder()
+    }
+
+    /// An `NSWindow` resigning key doesn't call `resignFirstResponder`, so
+    /// recording would otherwise survive switching to another app — leaving
+    /// every snippet's hotkey unregistered until the user returns and
+    /// presses Esc. Watch the window directly, and cancel outright if the
+    /// control is torn down (e.g. its snippet is deleted) while recording.
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        super.viewWillMove(toWindow: newWindow)
+        if newWindow == nil {
+            cancelRecording()
+        }
+        if let resignKeyObserver {
+            NotificationCenter.default.removeObserver(resignKeyObserver)
+            self.resignKeyObserver = nil
+        }
+        if let newWindow {
+            resignKeyObserver = NotificationCenter.default.addObserver(
+                forName: NSWindow.didResignKeyNotification,
+                object: newWindow,
+                queue: .main
+            ) { [weak self] _ in
+                self?.cancelRecording()
+            }
+        }
+    }
+
+    /// Ends recording without moving focus. Safe to call whether or not
+    /// recording is in progress; `isRecording`'s `didSet` guard means
+    /// `onRecordingChanged` still fires at most once.
+    func cancelRecording() {
+        isRecording = false
     }
 
     override func keyDown(with event: NSEvent) {
@@ -135,7 +178,7 @@ final class RecorderControl: NSView {
     }
 
     private func stopRecording() {
-        isRecording = false
+        cancelRecording()
         window?.makeFirstResponder(nil)
     }
 

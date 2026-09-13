@@ -9,8 +9,20 @@ import os
 /// store changes; snippet counts are small enough that diffing isn't worth it.
 final class HotKeyManager {
     /// Set to `false` while the shortcut recorder is capturing keys so the
-    /// pressed combo doesn't trigger a paste.
-    var isEnabled = true
+    /// pressed combo doesn't trigger a paste. Setting this unregisters all
+    /// Carbon hotkeys so the window server delivers the keys to the app
+    /// instead of consuming them, and re-registers them when set back to
+    /// `true`.
+    var isEnabled = true {
+        didSet {
+            guard oldValue != isEnabled else { return }
+            if isEnabled {
+                register(store.snippets)
+            } else {
+                unregisterAll()
+            }
+        }
+    }
 
     private let store: SnippetStore
     private let onTrigger: (Snippet) -> Void
