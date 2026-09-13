@@ -14,7 +14,7 @@ struct CopyStackApp: App {
         // A `Settings` scene is never auto-presented; a lone `Window` scene
         // would open itself at launch (and be restored on relaunch).
         Settings {
-            SettingsView(store: appDelegate.store, hotKeyManager: appDelegate.hotKeyManager)
+            SettingsView(store: appDelegate.store, hotKeyManager: appDelegate.hotKeyManager, loginItem: appDelegate.loginItem)
         }
     }
 }
@@ -23,6 +23,7 @@ struct CopyStackApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = SnippetStore()
     let paster = Paster()
+    let loginItem = LoginItemManager()
     lazy var hotKeyManager = HotKeyManager(store: store) { [weak self] snippet in
         self?.paste(snippet)
     }

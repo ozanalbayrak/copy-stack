@@ -6,9 +6,11 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
+    @ObservedObject var loginItem: LoginItemManager
 
     @State private var selectedID: Snippet.ID?
     @State private var isTrusted = AccessibilityGate.isTrusted
+    @State private var loginItemError: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +28,7 @@ struct SettingsView: View {
         // The user grants permission in System Settings and comes back; re-check then.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             isTrusted = AccessibilityGate.isTrusted
+            loginItem.refresh()
         }
     }
 
@@ -73,6 +76,34 @@ struct SettingsView: View {
             }
             .buttonStyle(.borderless)
             .padding(6)
+            Divider()
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { loginItem.isEnabled },
+                    set: { enabled in
+                        do {
+                            try loginItem.setEnabled(enabled)
+                            loginItemError = nil
+                        } catch {
+                            loginItemError = error.localizedDescription
+                        }
+                    }))
+                if loginItem.status == .requiresApproval {
+                    HStack(spacing: 4) {
+                        Text("Approve in System Settings → General → Login Items")
+                        Button("Open") {
+                            LoginItemManager.openSystemSettings()
+                        }
+                    }
+                    .font(.caption)
+                }
+                if let loginItemError {
+                    Text(loginItemError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding(8)
         }
     }
 
