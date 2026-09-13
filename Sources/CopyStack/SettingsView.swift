@@ -100,12 +100,45 @@ struct SnippetEditor: View {
     @Binding var snippet: Snippet
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
+    @State private var shortcutError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             LabeledContent("Name") {
                 TextField("Name", text: $snippet.name)
                     .textFieldStyle(.roundedBorder)
+            }
+            LabeledContent("Shortcut") {
+                VStack(alignment: .leading, spacing: 4) {
+                    ShortcutRecorderView(
+                        combo: snippet.shortcut,
+                        onRecordingChanged: { isRecording in
+                            hotKeyManager.isEnabled = !isRecording
+                        },
+                        onRecord: { combo in
+                            do {
+                                try store.validate(combo, for: snippet.id)
+                                snippet.shortcut = combo
+                                shortcutError = nil
+                                return true
+                            } catch SnippetStore.ValidationError.shortcutConflict(let ownerName) {
+                                shortcutError = "Already used by “\(ownerName)”"
+                            } catch {
+                                shortcutError = "Add at least one modifier key (⌃ ⌥ ⇧ ⌘)"
+                            }
+                            return false
+                        },
+                        onClear: {
+                            snippet.shortcut = nil
+                            shortcutError = nil
+                        })
+                    .fixedSize()
+                    if let shortcutError {
+                        Text(shortcutError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
             }
             Text("Text")
                 .font(.headline)
