@@ -9,6 +9,8 @@ final class KeychainSecretStoreTests: XCTestCase {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["COPYSTACK_KEYCHAIN_TESTS"] == "1",
                           "set COPYSTACK_KEYCHAIN_TESTS=1 to run against the login Keychain")
         let store = KeychainSecretStore(account: "secrets-test-\(UUID().uuidString)")
+        // A failed assertion must not leave the throwaway item behind.
+        addTeardownBlock { try? store.write([:]) }
         XCTAssertEqual(try store.read(), [:])
 
         let id = UUID()

@@ -39,12 +39,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Resolves the snippet's text (Keychain for secret ones) and pastes it.
-    /// A Keychain failure is logged and nothing is pasted.
+    /// A Keychain failure, or a secret with no stored text, is logged and
+    /// nothing is pasted.
     func paste(_ snippet: Snippet) {
+        let text: String
         do {
-            paster.paste(try store.text(for: snippet.id))
+            text = try store.text(for: snippet.id)
         } catch {
             Self.logger.error("Could not read text for \(snippet.name, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            return
         }
+        if snippet.isSecret && text.isEmpty {
+            Self.logger.warning("Secret snippet \(snippet.name, privacy: .public) has no stored text; nothing to paste")
+            return
+        }
+        paster.paste(text)
     }
 }
