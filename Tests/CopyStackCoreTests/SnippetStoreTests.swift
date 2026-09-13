@@ -192,6 +192,21 @@ final class SnippetStoreTests: XCTestCase {
         }
     }
 
+    /// Counts calls so a test can assert the store was never consulted.
+    private final class RecordingSecretStore: SecretStore {
+        private(set) var reads = 0
+        private(set) var writes = 0
+
+        func read() throws -> [UUID: String] {
+            reads += 1
+            return [:]
+        }
+
+        func write(_ secrets: [UUID: String]) throws {
+            writes += 1
+        }
+    }
+
     private func fileContents() throws -> String {
         try String(contentsOf: fileURL, encoding: .utf8)
     }
@@ -337,5 +352,47 @@ final class SnippetStoreTests: XCTestCase {
         try store.setText("changed", for: second.id)
 
         XCTAssertEqual(secrets.secrets, [second.id: "changed"])
+    }
+
+    func testSetSecretFalseLeavesEverythingUnchangedWhenReadFails() throws {
+        let working = makeStore()
+        let token = working.add(name: "Token", text: "s3cret")
+        try working.setSecret(true, for: token.id)
+        // Same file, but the Keychain now refuses every read.
+        let store = SnippetStore(fileURL: fileURL, secretStore: FailingSecretStore())
+
+        XCTAssertThrowsError(try store.setSecret(false, for: token.id)) { error in
+            XCTAssertEqual(error as? SecretStoreError, .accessDenied)
+        }
+
+        XCTAssertEqual(store.snippets[0].text, "")
+        XCTAssertTrue(store.snippets[0].isSecret)
+        XCTAssertFalse(try fileContents().contains("s3cret"))
+    }
+
+    func testRemoveOfSecretSnippetSucceedsWhenTheStoreFails() throws {
+        let flaky = FlakySecretStore(inner: secrets)
+        let store = SnippetStore(fileURL: fileURL, secretStore: flaky)
+        let token = store.add(name: "Token", text: "s3cret")
+        try store.setSecret(true, for: token.id)
+
+        flaky.failNextWrite = true
+        store.remove(id: token.id)
+
+        XCTAssertEqual(store.snippets, [])
+        XCTAssertEqual(makeStore().snippets, [])
+    }
+
+    func testNormalSnippetsNeverTouchTheSecretStore() throws {
+        let recording = RecordingSecretStore()
+        let store = SnippetStore(fileURL: fileURL, secretStore: recording)
+        var email = store.add(name: "Email", text: "me@example.com")
+        email.text = "you@example.com"
+        store.update(email)
+        XCTAssertEqual(try store.text(for: email.id), "you@example.com")
+        store.remove(id: email.id)
+
+        XCTAssertEqual(recording.reads, 0)
+        XCTAssertEqual(recording.writes, 0)
     }
 }
