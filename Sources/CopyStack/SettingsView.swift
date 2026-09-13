@@ -89,13 +89,15 @@ struct SettingsView: View {
                         }
                     }))
                 if loginItem.status == .requiresApproval {
-                    HStack(spacing: 4) {
-                        Text("Approve in System Settings → General → Login Items")
-                        Button("Open") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Approve in System Settings → Login Items")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Open Login Items") {
                             LoginItemManager.openSystemSettings()
                         }
+                        .font(.caption)
                     }
-                    .font(.caption)
                 }
                 if let loginItemError {
                     Text(loginItemError)
