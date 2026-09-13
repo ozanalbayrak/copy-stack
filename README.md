@@ -5,6 +5,25 @@ address, Slack slash commands, a meeting link. Each snippet gets its own
 global keyboard shortcut; press it and the text is pasted into whatever app
 is focused. Your real clipboard is left exactly as it was.
 
+## Download
+
+Grab the latest `CopyStack-<version>.zip` from the
+[Releases page](https://github.com/ozanalbayrak/copy-stack/releases), unzip
+it and move `CopyStack.app` to `/Applications`.
+
+Releases are not notarized (that needs a paid Apple Developer account), so
+macOS refuses to open the app the first time:
+
+1. Double-click `CopyStack.app` — macOS says it could not verify the app.
+2. Open **System Settings → Privacy & Security**, scroll down, click
+   **Open Anyway** next to the CopyStack message and confirm.
+
+Or, from a terminal: `xattr -d com.apple.quarantine /Applications/CopyStack.app`.
+
+Because releases are ad-hoc signed, macOS treats every update as a new app:
+after updating, remove CopyStack from the Accessibility list and add the new
+copy again.
+
 ## Requirements
 
 - macOS 14 or later
@@ -85,6 +104,17 @@ the shortcut recorder — are verified by hand:
 5. Try to record ⌃⌥E on a second snippet → rejected, naming the owner.
 6. Clear the shortcut → the menu row loses its label and the hotkey no
    longer fires.
+
+## Releasing
+
+Push a version tag and GitHub Actions builds, tests and publishes the zip:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+`Scripts/release.sh 0.2.0` produces the same zip locally.
 
 ## Roadmap
 
