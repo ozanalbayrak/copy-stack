@@ -6,6 +6,11 @@ import os
 public final class SnippetStore: ObservableObject {
     @Published public private(set) var snippets: [Snippet]
     public let fileURL: URL
+    private let secretStore: SecretStore
+    /// Ids whose Keychain entry could not be removed, e.g. because the user
+    /// denied the prompt while deleting the snippet. Dropped from the payload
+    /// on the next successful write.
+    private var pendingSecretRemovals: Set<UUID> = []
 
     private static let logger = Logger(subsystem: "com.ozanalbayrak.CopyStack", category: "SnippetStore")
 
@@ -16,9 +21,14 @@ public final class SnippetStore: ObservableObject {
             .appendingPathComponent("snippets.json")
     }
 
-    public init(fileURL: URL = SnippetStore.defaultFileURL) {
+    public init(fileURL: URL = SnippetStore.defaultFileURL, secretStore: SecretStore = KeychainSecretStore()) {
         self.fileURL = fileURL
+        self.secretStore = secretStore
         self.snippets = Self.load(from: fileURL)
+    }
+
+    public enum SnippetError: Error, Equatable {
+        case unknownSnippet
     }
 
     // MARK: Mutations
@@ -32,15 +42,114 @@ public final class SnippetStore: ObservableObject {
     }
 
     public func remove(id: Snippet.ID) {
-        snippets.removeAll { $0.id == id }
+        guard let index = snippets.firstIndex(where: { $0.id == id }) else { return }
+        let wasSecret = snippets[index].isSecret
+        snippets.remove(at: index)
         save()
+        if wasSecret {
+            removeSecret(for: id)
+        }
     }
 
     /// Replaces the stored snippet with the same id. Unknown ids are ignored.
+    ///
+    /// Never touches secret text or the `isSecret` flag: for a secret snippet
+    /// `text` is forced back to `""`. Use `setText(_:for:)` and
+    /// `setSecret(_:for:)` for those.
     public func update(_ snippet: Snippet) {
         guard let index = snippets.firstIndex(where: { $0.id == snippet.id }) else { return }
+        var snippet = snippet
+        snippet.isSecret = snippets[index].isSecret
+        if snippet.isSecret {
+            snippet.text = ""
+        }
         snippets[index] = snippet
         save()
+    }
+
+    // MARK: Secrets
+
+    /// The text to paste. Reads the secret store for secret snippets.
+    public func text(for id: Snippet.ID) throws -> String {
+        guard let snippet = snippets.first(where: { $0.id == id }) else {
+            throw SnippetError.unknownSnippet
+        }
+        guard snippet.isSecret else { return snippet.text }
+        return try secretStore.read()[id] ?? ""
+    }
+
+    /// Writes text to the right place: the JSON file for normal snippets,
+    /// the secret store for secret ones.
+    public func setText(_ text: String, for id: Snippet.ID) throws {
+        guard let index = snippets.firstIndex(where: { $0.id == id }) else {
+            throw SnippetError.unknownSnippet
+        }
+        if snippets[index].isSecret {
+            var secrets = try secretStore.read()
+            secrets[id] = text
+            // An id being written is live again; it must not be stripped.
+            pendingSecretRemovals.remove(id)
+            try writeSecrets(secrets)
+        } else {
+            snippets[index].text = text
+            save()
+        }
+    }
+
+    /// Moves the text between the JSON file and the secret store and flips
+    /// the flag. No-op when the snippet is already in the requested state.
+    public func setSecret(_ isSecret: Bool, for id: Snippet.ID) throws {
+        guard let index = snippets.firstIndex(where: { $0.id == id }) else {
+            throw SnippetError.unknownSnippet
+        }
+        guard snippets[index].isSecret != isSecret else { return }
+        var updated = snippets[index]
+        if isSecret {
+            // Secret store first: if it fails, nothing has changed.
+            var secrets = try secretStore.read()
+            secrets[id] = updated.text
+            // A removal that failed earlier (toggle off, then on again) must
+            // not strip the id that is being written now.
+            pendingSecretRemovals.remove(id)
+            try writeSecrets(secrets)
+            updated.text = ""
+            updated.isSecret = true
+            snippets[index] = updated
+            save()
+        } else {
+            let text = try secretStore.read()[id] ?? ""
+            // JSON first: the text is safe before the secret entry goes away.
+            updated.text = text
+            updated.isSecret = false
+            snippets[index] = updated
+            save()
+            removeSecret(for: id)
+        }
+    }
+
+    /// Best-effort removal; the caller has already persisted the state that
+    /// matters, so a failure here is only logged. The id is remembered so the
+    /// next successful write drops the stale entry.
+    private func removeSecret(for id: Snippet.ID) {
+        do {
+            var secrets = try secretStore.read()
+            guard secrets.removeValue(forKey: id) != nil else { return }
+            try writeSecrets(secrets)
+        } catch {
+            pendingSecretRemovals.insert(id)
+            Self.logger.error("Failed to remove secret for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Every write goes through here so entries that could not be removed
+    /// earlier are dropped as soon as the secret store accepts a write again.
+    private func writeSecrets(_ secrets: [UUID: String]) throws {
+        var secrets = secrets
+        for id in pendingSecretRemovals {
+            secrets.removeValue(forKey: id)
+        }
+        try secretStore.write(secrets)
+        pendingSecretRemovals.removeAll()
     }
 
     // MARK: Shortcut validation
@@ -80,6 +189,13 @@ public final class SnippetStore: ObservableObject {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             Self.logger.error("Failed to save snippets: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        // The file lists snippet names and shortcuts; keep it to the owner.
+        do {
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
+        } catch {
+            Self.logger.error("Failed to set permissions on snippets file: \(error.localizedDescription, privacy: .public)")
         }
     }
 

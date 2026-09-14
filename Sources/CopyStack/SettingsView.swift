@@ -6,13 +6,15 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
+    @ObservedObject var loginItem: LoginItemManager
+    @ObservedObject var accessibility: AccessibilityStatus
 
     @State private var selectedID: Snippet.ID?
-    @State private var isTrusted = AccessibilityGate.isTrusted
+    @State private var loginItemError: String?
 
     var body: some View {
         VStack(spacing: 0) {
-            if !isTrusted {
+            if !accessibility.isTrusted {
                 permissionBanner
             }
             HSplitView {
@@ -23,9 +25,15 @@ struct SettingsView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 400)
-        // The user grants permission in System Settings and comes back; re-check then.
+        // The view is built at launch, before any permission was granted, so
+        // re-check whenever it is shown and whenever the app comes back to
+        // the front (the user returns from System Settings).
+        .onAppear {
+            accessibility.refresh()
+            loginItem.refresh()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            isTrusted = AccessibilityGate.isTrusted
+            loginItem.refresh()
         }
     }
 
@@ -73,6 +81,36 @@ struct SettingsView: View {
             }
             .buttonStyle(.borderless)
             .padding(6)
+            Divider()
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { loginItem.isEnabled },
+                    set: { enabled in
+                        do {
+                            try loginItem.setEnabled(enabled)
+                            loginItemError = nil
+                        } catch {
+                            loginItemError = error.localizedDescription
+                        }
+                    }))
+                if loginItem.status == .requiresApproval {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Approve in System Settings → Login Items")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Open Login Items") {
+                            LoginItemManager.openSystemSettings()
+                        }
+                        .font(.caption)
+                    }
+                }
+                if let loginItemError {
+                    Text(loginItemError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding(8)
         }
     }
 
@@ -100,7 +138,22 @@ struct SnippetEditor: View {
     @Binding var snippet: Snippet
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
+
     @State private var shortcutError: String?
+    /// Local copy of the toggle so a failed `setSecret` can revert it.
+    @State private var isSecret: Bool
+    @State private var secretError: String?
+    /// Secret text while revealed; `nil` means masked.
+    @State private var revealedText: String?
+    /// Debounced write of the revealed text; see `scheduleCommit`.
+    @State private var pendingCommit: Task<Void, Never>?
+
+    init(snippet: Binding<Snippet>, store: SnippetStore, hotKeyManager: HotKeyManager) {
+        _snippet = snippet
+        _store = ObservedObject(wrappedValue: store)
+        self.hotKeyManager = hotKeyManager
+        _isSecret = State(initialValue: snippet.wrappedValue.isSecret)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -144,13 +197,125 @@ struct SnippetEditor: View {
                     }
                 }
             }
+            LabeledContent("Storage") {
+                VStack(alignment: .leading, spacing: 4) {
+                    Toggle("Store in Keychain", isOn: $isSecret)
+                        .onChange(of: isSecret) { _, newValue in
+                            // Also fires when a failed attempt reverts the
+                            // toggle; the guard makes that a no-op.
+                            guard newValue != snippet.isSecret else { return }
+                            flushPendingCommit()
+                            do {
+                                try store.setSecret(newValue, for: snippet.id)
+                                secretError = nil
+                                revealedText = nil
+                            } catch {
+                                isSecret = snippet.isSecret
+                                secretError = Self.message(for: error)
+                            }
+                        }
+                    if let secretError {
+                        Text(secretError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
             Text("Text")
                 .font(.headline)
-            TextEditor(text: $snippet.text)
-                .font(.system(.body, design: .monospaced))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .border(Color(nsColor: .separatorColor))
+            if snippet.isSecret {
+                secretTextArea
+            } else {
+                TextEditor(text: $snippet.text)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .border(Color(nsColor: .separatorColor))
+            }
         }
         .padding()
+        .onDisappear { flushPendingCommit() }
+    }
+
+    @ViewBuilder
+    private var secretTextArea: some View {
+        if let revealedText {
+            VStack(alignment: .leading, spacing: 6) {
+                TextEditor(text: Binding(
+                    get: { revealedText },
+                    set: { newValue in
+                        self.revealedText = newValue
+                        scheduleCommit(newValue)
+                    }))
+                    .font(.system(.body, design: .monospaced))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .border(Color(nsColor: .separatorColor))
+                Button("Hide") {
+                    // Clear a stale caption first so a failed flush stays visible.
+                    secretError = nil
+                    flushPendingCommit()
+                    self.revealedText = nil
+                }
+            }
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "lock.fill")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                Text("Hidden — stored in Keychain")
+                    .foregroundStyle(.secondary)
+                Button("Reveal") {
+                    do {
+                        revealedText = try store.text(for: snippet.id)
+                        secretError = nil
+                    } catch {
+                        secretError = Self.message(for: error)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .border(Color(nsColor: .separatorColor))
+        }
+    }
+
+    /// Commits ~300 ms after the last keystroke so a revealed edit costs one
+    /// Keychain round-trip per pause, not one per character.
+    private func scheduleCommit(_ text: String) {
+        pendingCommit?.cancel()
+        pendingCommit = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            commit(text)
+        }
+    }
+
+    /// Writes any not-yet-committed edit immediately.
+    private func flushPendingCommit() {
+        guard pendingCommit != nil else { return }
+        pendingCommit?.cancel()
+        pendingCommit = nil
+        if let revealedText {
+            commit(revealedText)
+        }
+    }
+
+    private func commit(_ text: String) {
+        pendingCommit = nil
+        do {
+            try store.setText(text, for: snippet.id)
+            secretError = nil
+        } catch {
+            secretError = Self.message(for: error)
+        }
+    }
+
+    private static func message(for error: Error) -> String {
+        switch error {
+        case SecretStoreError.accessDenied:
+            return "Keychain access was denied"
+        case SecretStoreError.failure(let status):
+            return "Keychain error \(status)"
+        default:
+            return error.localizedDescription
+        }
     }
 }
