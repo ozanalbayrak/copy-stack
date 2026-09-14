@@ -165,7 +165,10 @@ the shortcut recorder — are verified by hand:
 
 ## Releasing
 
-Push a version tag and GitHub Actions builds, tests and publishes the zip:
+Add a `## [x.y.z] - YYYY-MM-DD` section to `CHANGELOG.md` (the workflow
+refuses to release a version without one), then push a version tag and
+GitHub Actions builds, tests and publishes the zip with that section as the
+release notes:
 
 ```bash
 git tag v0.2.0

@@ -18,6 +18,9 @@ jobs:
       - name: Show toolchain
         run: swift --version
 
+      - name: Check changelog entry
+        run: Scripts/changelog-section.sh "${GITHUB_REF_NAME#v}" > /dev/null
+
       - name: Run tests
         run: swift test
 
@@ -30,7 +33,13 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           sha=$(shasum -a 256 "build/CopyStack-$version.zip" | cut -d' ' -f1)
-          printf 'SHA-256: `%s`\n' "$sha" > release-notes.md
+          {
+            Scripts/changelog-section.sh "$version"
+            printf '\n## Install\n\n'
+            printf '```bash\nbrew install --cask ozanalbayrak/tap/copystack\n```\n\n'
+            printf 'Or download `CopyStack-%s.zip` below, unzip, move `CopyStack.app` to `/Applications`, then allow it under System Settings → Privacy & Security (**Open Anyway**) and grant Accessibility.\n\n' "$version"
+            printf 'SHA-256: `%s`\n' "$sha"
+          } > release-notes.md
           gh release create "$GITHUB_REF_NAME" "build/CopyStack-$version.zip" \
             --title "CopyStack $version" \
             --notes-file release-notes.md \
