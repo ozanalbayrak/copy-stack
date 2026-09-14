@@ -7,14 +7,14 @@ struct SettingsView: View {
     @ObservedObject var store: SnippetStore
     let hotKeyManager: HotKeyManager
     @ObservedObject var loginItem: LoginItemManager
+    @ObservedObject var accessibility: AccessibilityStatus
 
     @State private var selectedID: Snippet.ID?
-    @State private var isTrusted = AccessibilityGate.isTrusted
     @State private var loginItemError: String?
 
     var body: some View {
         VStack(spacing: 0) {
-            if !isTrusted {
+            if !accessibility.isTrusted {
                 permissionBanner
             }
             HSplitView {
@@ -25,9 +25,14 @@ struct SettingsView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 400)
-        // The user grants permission in System Settings and comes back; re-check then.
+        // The view is built at launch, before any permission was granted, so
+        // re-check whenever it is shown and whenever the app comes back to
+        // the front (the user returns from System Settings).
+        .onAppear {
+            accessibility.refresh()
+            loginItem.refresh()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            isTrusted = AccessibilityGate.isTrusted
             loginItem.refresh()
         }
     }
