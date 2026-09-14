@@ -6,6 +6,8 @@ publishes the section matching the pushed tag as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-15
+
 ### Added
 - App icon and a matching menu bar glyph (design source under `design/`).
 
@@ -56,7 +58,8 @@ publishes the section matching the pushed tag as the GitHub release notes.
 - Gatekeeper-, Accessibility- and pasteboard-privacy-aware: the app explains
   what to grant and never clears your clipboard when a read is denied.
 
-[Unreleased]: https://github.com/ozanalbayrak/copy-stack/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ozanalbayrak/copy-stack/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/ozanalbayrak/copy-stack/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ozanalbayrak/copy-stack/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ozanalbayrak/copy-stack/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ozanalbayrak/copy-stack/releases/tag/v0.1.0
