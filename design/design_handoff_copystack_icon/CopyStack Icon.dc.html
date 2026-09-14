@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-aad67cf2-df5e-43a3-b778-0cccf10e5a9b/styles.css">
+<script src="_ds/modernist-aad67cf2-df5e-43a3-b778-0cccf10e5a9b/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); }
+  a { color: var(--color-accent-700); text-decoration: none; border-bottom: 2px solid var(--color-accent); }
+  a:hover { color: var(--color-accent); border-bottom-color: var(--color-text); }
+  a:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+</style>
+</helmet>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: var(--space-8) var(--space-6) 96px;">
+
+  <header style="display: flex; flex-direction: column; gap: var(--space-4);">
+    <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-700);">
+      <span>macOS app icon</span>
+      <span style="color: var(--color-neutral-400);">/</span>
+      <span>menu bar template</span>
+      <span style="color: var(--color-neutral-400);">/</span>
+      <span>com.ozanalbayrak.CopyStack</span>
+    </div>
+    <h1 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: clamp(44px, 7vw, 82px); line-height: 0.95; letter-spacing: -0.02em;">CopyStack</h1>
+    <p style="margin: 0; max-width: 62ch; font-size: 19px; line-height: 1.5; text-wrap: pretty;">A stack of ready-to-paste snippets, drawn as one front-facing object: two sheets stepping back behind a single card, with a snippet line and a ⌘ on its face.</p>
+  </header>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">01 — Three concepts</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-6);">
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-4); border-top: 2px solid var(--color-divider); padding-top: var(--space-4);">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2);">
+          <span style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; letter-spacing: 0.12em;">A — FAN</span>
+        </div>
+        <svg viewBox="0 0 160 160" width="100%" style="display: block; background: var(--color-neutral-100);" aria-label="Sketch: three sheets fanned up and to the right">
+          <rect x="13" y="13" width="134" height="134" rx="34" fill="none" stroke="#201e1d" stroke-width="2"></rect>
+          <g fill="none" stroke="#201e1d" stroke-width="2">
+            <rect x="-34" y="-24" width="68" height="48" rx="8" transform="translate(74 92) rotate(-11)"></rect>
+            <rect x="-34" y="-24" width="68" height="48" rx="8" transform="translate(82 80)"></rect>
+            <rect x="-34" y="-24" width="68" height="48" rx="8" transform="translate(90 68) rotate(9)"></rect>
+          </g>
+        </svg>
+        <p style="margin: 0; font-size: 15px; line-height: 1.45; text-wrap: pretty;">Sheets fanned up and to the right, the top one lifting off — carries motion and "many snippets", but the diagonal collapses into a smudge below 32 px.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-4); border-top: 2px solid var(--color-accent); padding-top: var(--space-4);">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2);">
+          <span style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; letter-spacing: 0.12em;">B — STEPPED STACK</span>
+          <span class="tag tag-accent">Selected</span>
+        </div>
+        <svg viewBox="0 0 160 160" width="100%" style="display: block; background: var(--color-neutral-100);" aria-label="Sketch: front-facing stepped stack with snippet line and command mark">
+          <rect x="13" y="13" width="134" height="134" rx="34" fill="none" stroke="#201e1d" stroke-width="2"></rect>
+          <g fill="none" stroke="#201e1d" stroke-width="2">
+            <rect x="59" y="42" width="42" height="11" rx="5"></rect>
+            <rect x="51" y="55" width="58" height="12" rx="5"></rect>
+            <rect x="41" y="69" width="78" height="52" rx="10"></rect>
+            <rect x="52" y="81" width="42" height="6" rx="3"></rect>
+            <rect x="52" y="95" width="16" height="16" rx="4"></rect>
+          </g>
+        </svg>
+        <p style="margin: 0; font-size: 15px; line-height: 1.45; text-wrap: pretty;">Front-facing stack: two sheets step back behind one large card carrying a snippet line and a ⌘. Symmetrical, quiet, native — and the silhouette still reads at 16 px.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-4); border-top: 2px solid var(--color-divider); padding-top: var(--space-4);">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-2);">
+          <span style="font-family: var(--font-heading); font-weight: 800; font-size: 14px; letter-spacing: 0.12em;">C — KEYCAP</span>
+        </div>
+        <svg viewBox="0 0 160 160" width="100%" style="display: block; background: var(--color-neutral-100);" aria-label="Sketch: keycap pressing onto two sheets">
+          <rect x="13" y="13" width="134" height="134" rx="34" fill="none" stroke="#201e1d" stroke-width="2"></rect>
+          <g fill="none" stroke="#201e1d" stroke-width="2">
+            <rect x="54" y="40" width="52" height="48" rx="11"></rect>
+            <rect x="63" y="49" width="34" height="30" rx="6"></rect>
+            <rect x="47" y="94" width="66" height="12" rx="6"></rect>
+            <rect x="40" y="107" width="80" height="13" rx="6"></rect>
+          </g>
+        </svg>
+        <p style="margin: 0; font-size: 15px; line-height: 1.45; text-wrap: pretty;">A keycap pressing down onto two sheets. The keyboard idea leads, which makes it read as a shortcut or keyboard utility rather than a store of snippets.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">02 — B, rendered</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-8); align-items: start;">
+
+      <div style="position: relative; background: var(--color-neutral-200); padding: var(--space-8); display: flex; justify-content: center;">
+        <sc-if value="{{ shadowHero }}" hint-placeholder-val="{{ true }}">
+          <img src="exports/copystack-icon-1024.png" alt="CopyStack app icon at 1024 px" width="1024" height="1024" style="display: block; width: 100%; max-width: 460px; height: auto;">
+        </sc-if>
+        <sc-if value="{{ flatHero }}" hint-placeholder-val="{{ false }}">
+          <img src="exports/copystack-icon-1024-flat.png" alt="CopyStack app icon at 1024 px, without the drop shadow" width="1024" height="1024" style="display: block; width: 100%; max-width: 460px; height: auto;">
+        </sc-if>
+        <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
+          <svg viewBox="0 0 1024 1024" style="position: absolute; top: var(--space-8); left: 50%; transform: translateX(-50%); width: calc(100% - 2 * var(--space-8)); max-width: 460px; pointer-events: none;" aria-hidden="true">
+            <rect x="2" y="2" width="1020" height="1020" fill="none" stroke="#ec3013" stroke-opacity="0.5" stroke-width="4"></rect>
+            <rect x="100" y="100" width="824" height="824" fill="none" stroke="#ec3013" stroke-opacity="0.8" stroke-width="4"></rect>
+            <path d="M512 0V1024M0 512H1024" stroke="#ec3013" stroke-opacity="0.45" stroke-width="4"></path>
+            <path d="M262 0V1024M762 0V1024M0 282H1024M0 728H1024" stroke="#ec3013" stroke-opacity="0.3" stroke-width="3"></path>
+          </svg>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <p style="margin: 0; font-size: 17px; line-height: 1.5; text-wrap: pretty;">The object is four filled shapes, no strokes: two translucent sheets, the card, and its slightly cooler rim. Depth comes from the step between layers and the ground gradient behind them — no long shadow, no texture, no inner glow.</p>
+        <ul style="margin: 0; padding-left: 1.1em; font-size: 16px; line-height: 1.6;">
+          <li>Indigo ground keeps it clear of Notes yellow, Reminders red, Finder and Mail blue.</li>
+          <li>Amber ⌘ is the only accent, and the only non-white mark that survives to 32 px.</li>
+          <li>Lightest stop sits at the top, so it sinks correctly next to Apple's icons in a Login Items row.</li>
+          <li>Everything is one centred silhouette: nothing crosses the squircle edge, nothing floats outside it.</li>
+        </ul>
+        <div style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
+          <span class="tag tag-neutral">824 px body</span>
+          <span class="tag tag-neutral">2-stop gradient</span>
+          <span class="tag tag-neutral">3 layer groups</span>
+          <span class="tag tag-neutral">no text</span>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ darkContext }}" hint-placeholder-val="{{ true }}">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2px; background: var(--color-divider);">
+        <div style="background: #e9e6e2; padding: var(--space-6); display: flex; align-items: center; gap: var(--space-4);">
+          <img src="exports/copystack-icon-256.png" alt="Icon on a light desktop" width="128" height="128" style="display: block; width: 128px; height: 128px;">
+          <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-700);">Light desktop</span>
+        </div>
+        <div style="background: #23201f; padding: var(--space-6); display: flex; align-items: center; gap: var(--space-4);">
+          <img src="exports/copystack-icon-256.png" alt="Icon on a dark desktop" width="128" height="128" style="display: block; width: 128px; height: 128px;">
+          <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a3a0;">Dark desktop</span>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">03 — Size proofs, actual pixels</h2>
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-8); background: var(--color-neutral-100); padding: var(--space-6);">
+      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <img src="exports/copystack-icon-256.png" alt="256 px" width="256" height="256" style="display: block;">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">256</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <img src="exports/copystack-icon-128.png" alt="128 px" width="128" height="128" style="display: block;">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">128</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <img src="exports/copystack-icon-32.png" alt="32 px" width="32" height="32" style="display: block;">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">32</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <img src="exports/copystack-icon-16.png" alt="16 px" width="16" height="16" style="display: block;">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">16</span>
+      </div>
+      <div style="display: flex; gap: var(--space-6); margin-left: auto;">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+          <img src="exports/copystack-icon-32.png" alt="32 px enlarged four times" width="128" height="128" style="display: block; image-rendering: pixelated; outline: 2px solid var(--color-divider);">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--color-neutral-700);">32 AT 4×</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+          <img src="exports/copystack-icon-16.png" alt="16 px enlarged eight times" width="128" height="128" style="display: block; image-rendering: pixelated; outline: 2px solid var(--color-divider);">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--color-neutral-700);">16 AT 8×</span>
+        </div>
+      </div>
+    </div>
+    <p style="margin: 0; max-width: 70ch; font-size: 15px; line-height: 1.5; color: var(--color-neutral-800); text-wrap: pretty;">At 16 px the card and the two steps behind it are all that remain, which is the intent: the silhouette is the identity, the ⌘ is a bonus above 32 px.</p>
+  </section>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">04 — Menu bar template glyph</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-8); align-items: start;">
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <div style="display: flex; align-items: flex-end; gap: var(--space-8); background: var(--color-neutral-100); padding: var(--space-6);">
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <img src="exports/copystack-menubar-18.png" alt="Menu bar glyph at 18 px" width="18" height="18" style="display: block;">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">18 @1×</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <img src="exports/copystack-menubar-36.png" alt="Menu bar glyph at 36 px" width="36" height="36" style="display: block;">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em;">36 @2×</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-left: auto;">
+            <img src="exports/copystack-menubar-36.png" alt="Menu bar glyph enlarged" width="108" height="108" style="display: block; image-rendering: pixelated; outline: 2px solid var(--color-divider);">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--color-neutral-700);">36 AT 3×</span>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 16px; line-height: 1.5; text-wrap: pretty;">Three shapes: two sheet bars and the card, with the snippet line knocked out of it so the stack still reads when the glyph is 15 px tall. Solid black on transparent, so macOS tints it for light, dark and the Control Center highlight.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <div style="background: #f7f5f3; border: 2px solid var(--color-divider); padding: 0 var(--space-4); height: 30px; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4);">
+          <img src="exports/copystack-menubar-36.png" alt="Glyph in a light menu bar" width="18" height="18" style="display: block;">
+          <span style="font-size: 12px; font-weight: 600; color: #201e1d;">Tue 14:02</span>
+        </div>
+        <div style="background: #201e1d; padding: 0 var(--space-4); height: 30px; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-4);">
+          <img src="exports/copystack-menubar-36.png" alt="Glyph in a dark menu bar" width="18" height="18" style="display: block; filter: invert(1);">
+          <span style="font-size: 12px; font-weight: 600; color: #f3f2f2;">Tue 14:02</span>
+        </div>
+        <span style="margin-top: var(--space-2); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--color-neutral-700);">Template rendering, both appearances</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">05 — Specification</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-8); align-items: start;">
+      <table class="table">
+        <tbody>
+          <tr><td style="font-weight: 700;">Body</td><td>824 × 824 squircle centred in 1024, superellipse n ≈ 5.4</td></tr>
+          <tr><td style="font-weight: 700;">Ground</td><td>#7B6BFF → #2E1F9E, vertical, two stops</td></tr>
+          <tr><td style="font-weight: 700;">Rim light</td><td>white 12%, 10 px inside the body edge</td></tr>
+          <tr><td style="font-weight: 700;">Sheets</td><td>white 50% (312 × 68) and 82% (404 × 74)</td></tr>
+          <tr><td style="font-weight: 700;">Card</td><td>500 × 348 r62 #F6F6FC, face 448 × 296 r40 #FFFFFF</td></tr>
+          <tr><td style="font-weight: 700;">Snippet line</td><td>288 × 36 r18 #CBCDEC</td></tr>
+          <tr><td style="font-weight: 700;">⌘ accent</td><td>#FFB020, 14 px stroke, 79 px overall</td></tr>
+          <tr><td style="font-weight: 700;">Shadow</td><td>0 / 8 / 16 at 20% + 0 / 22 / 40 at 10% black</td></tr>
+          <tr><td style="font-weight: 700;">Glyph</td><td>15 px tall in an 18 pt box, min shape 1.6 px @1×</td></tr>
+        </tbody>
+      </table>
+      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;">
+          <div style="height: 92px; background: #7B6BFF;"></div>
+          <div style="height: 92px; background: #2E1F9E;"></div>
+          <div style="height: 92px; background: #FFB020;"></div>
+          <div style="height: 92px; background: #FFFFFF; outline: 2px solid var(--color-divider); outline-offset: -2px;"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em;">
+          <span>#7B6BFF</span><span>#2E1F9E</span><span>#FFB020</span><span>#FFFFFF</span>
+        </div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--color-neutral-800); text-wrap: pretty;">Indigo-violet ground, amber as the single accent, near-white object. Three hues total, and the amber is the only one that changes hue family — enough to read as "a key" without a second brand colour.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="hr" style="margin: var(--space-8) 0;"></div>
+
+  <section style="display: flex; flex-direction: column; gap: var(--space-6);">
+    <h2 style="margin: 0; font-family: var(--font-heading); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase;">06 — Files</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-6);">
+      <div style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 2px solid var(--color-divider); padding-top: var(--space-3);">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-700);">App icon, PNG</span>
+        <a href="exports/copystack-icon-1024.png">copystack-icon-1024.png</a>
+        <a href="exports/copystack-icon-1024-flat.png">copystack-icon-1024-flat.png</a>
+        <a href="exports/copystack-icon-512.png">copystack-icon-512.png</a>
+        <a href="exports/copystack-icon-256.png">copystack-icon-256.png</a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 2px solid var(--color-divider); padding-top: var(--space-3);">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-700);">Menu bar, PNG</span>
+        <a href="exports/copystack-menubar-18.png">copystack-menubar-18.png</a>
+        <a href="exports/copystack-menubar-36.png">copystack-menubar-36.png</a>
+        <span style="font-size: 14px; color: var(--color-neutral-800);">Ship both as CopyStackTemplate.png / @2x.</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3); border-top: 2px solid var(--color-accent); padding-top: var(--space-3);">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-700);">Layered source, SVG</span>
+        <a href="src/copystack-icon.svg">copystack-icon.svg</a>
+        <a href="src/copystack-icon-flat.svg">copystack-icon-flat.svg</a>
+        <a href="src/copystack-menubar.svg">copystack-menubar.svg</a>
+        <span style="font-size: 14px; color: var(--color-neutral-800);">Groups: layer-background, layer-mid, layer-foreground — one Icon Composer layer each.</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;showGrid&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Proofs&quot; },
+  &quot;flatHero&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Proofs&quot; },
+  &quot;darkContext&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Proofs&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    const flat = this.props.flatHero ?? false;
+    return {
+      flatHero: flat,
+      shadowHero: !flat,
+      showGrid: this.props.showGrid ?? false,
+      darkContext: this.props.darkContext ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -8,8 +8,10 @@ struct CopyStackApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("CopyStack", systemImage: "doc.on.clipboard") {
+        MenuBarExtra {
             MenuBarView(store: appDelegate.store, paste: appDelegate.paste)
+        } label: {
+            Image(nsImage: MenuBarIcon.image)
         }
         // A `Settings` scene is never auto-presented; a lone `Window` scene
         // would open itself at launch (and be restored on relaunch).

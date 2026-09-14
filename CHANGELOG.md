@@ -6,6 +6,9 @@ publishes the section matching the pushed tag as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+- App icon and a matching menu bar glyph (design source under `design/`).
+
 ## [0.2.0] - 2026-09-14
 
 ### Added

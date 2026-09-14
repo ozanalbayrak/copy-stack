@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="design/design_handoff_copystack_icon/exports/copystack-icon-256.png" width="128" alt="CopyStack icon">
+</p>
+
 # CopyStack
 
 A tiny macOS menu bar app for text you type over and over — an email
